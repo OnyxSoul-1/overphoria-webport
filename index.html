@@ -4,16 +4,70 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
-    <title>Overphoria: Active Ragdoll Combat</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <title>Overphoria: Active Ragdoll Combat - Ported by Onyx$oul-1</title>
+    
+    <!-- Fake Icon to stop the 404 error -->
+    <link rel="icon" href="data:,">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="TemplateData/style.css">
+    
+    <style>
+        /* YOUR RAINBOW NAME */
+        .credit {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 9999;
+            pointer-events: none;
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8f00ff, #ff0000);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 3s linear infinite;
+        }
+        @keyframes rainbow { to { background-position: 200% center; } }
+    </style>
+
+    <!-- THE MERGER SCRIPT FOR THE SPLIT WASM -->
+    <script>
+      const originalFetch = window.fetch;
+      window.fetch = async function(url, options) {
+        const urlStr = url.toString();
+        
+        // Intercept the 3 parts of the wasm file
+        if (urlStr.includes('Web.wasm.gz')) {
+          try {
+            const parts = await Promise.all([1, 2, 3].map(n => 
+              originalFetch('./Build/Web.wasm.gz.part' + n).then(r => r.arrayBuffer())
+            ));
+            const merged = new Uint8Array(parts.reduce((a, p) => a + p.byteLength, 0));
+            let offset = 0;
+            for (const p of parts) { merged.set(new Uint8Array(p), offset); offset += p.byteLength; }
+            
+            return new Response(merged, { 
+              status: 200, 
+              headers: new Headers({ 'Content-Type': 'application/wasm' }) 
+            });
+          } catch (e) {
+            console.error('WASM Merge failed:', e);
+          }
+        }
+        return originalFetch(url, options);
+      };
+    </script>
   </head>
   <body>
     <div id="game">
       <canvas id="unity-canvas" tabindex="-1"></canvas>
+
+      <!-- YOUR RAINBOW NAME -->
+      <div class="credit">Ported by Onyx$oul-1</div>
 
       <div id="loader">
         <div class="loader-inner">
@@ -44,7 +98,6 @@
     <script>
       var canvas = document.querySelector("#unity-canvas");
 
-      // Non-critical warnings fade after a few seconds; errors stay on top of the canvas
       function unityShowBanner(msg, type) {
         var warningBanner = document.querySelector("#unity-warning");
         function updateBannerVisibility() {
@@ -65,6 +118,8 @@
 
       var buildUrl = "Build";
       var loaderUrl = buildUrl + "/Web.loader.js";
+      
+      // This config points to the original names (the merger script catches them)
       var config = {
         arguments: [],
         dataUrl: buildUrl + "/Web.data.gz",
@@ -77,13 +132,10 @@
         showBanner: unityShowBanner,
       };
 
-      // The canvas fills the page (the itch.io embed frame or the browser window); on phones render at 1x to keep
-      // the frame rate up
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
         config.devicePixelRatio = 1;
         document.body.classList.add("mobile");
       }
-
 
       var fill = document.querySelector("#bar-fill");
       var statusText = document.querySelector("#status");
