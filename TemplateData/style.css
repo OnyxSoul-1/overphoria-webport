@@ -1,0 +1,155 @@
+/* Overphoria web player: the canvas fills the page (an itch.io embed frame or a browser window) with a themed
+   loading screen on top until the game starts. */
+:root {
+  --bg: #0f0f12;
+  --panel: #18181c;
+  --ink: #ece8e2;
+  --muted: #a39d94;
+  --red: #e0452b;
+  --blue: #5b8de0;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Barlow", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+#game { position: fixed; inset: 0; }
+
+#unity-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  outline: none;
+}
+
+/* Loading screen */
+#loader {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 460px);
+  justify-content: center;
+  align-content: center;
+  padding: 16px;
+  background: var(--bg) url("background.jpg") center / cover no-repeat;
+  transition: opacity .4s ease;
+}
+#loader.done { opacity: 0; pointer-events: none; }
+
+.loader-inner { min-width: 0; text-align: center; }
+
+.title {
+  margin: 0 0 22px;
+  font-family: "Oswald", "Bahnschrift", "Arial Narrow", Impact, sans-serif;
+  font-weight: 700;
+  font-size: clamp(44px, 9vw, 76px);
+  line-height: .95;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+.title .sub {
+  display: block;
+  margin-top: 8px;
+  font-size: .42em;
+  letter-spacing: 1.5px;
+  color: var(--red);
+}
+
+.bar {
+  height: 6px;
+  background: rgba(255, 255, 255, .12);
+  overflow: hidden;
+}
+.bar-fill {
+  width: 0;
+  height: 100%;
+  background: var(--red);
+  transition: width .2s ease;
+}
+
+.status {
+  margin-top: 10px;
+  font-family: "Oswald", "Bahnschrift", "Arial Narrow", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.keys {
+  list-style: none;
+  margin: 30px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.keys li { white-space: nowrap; }
+kbd {
+  display: inline-block;
+  min-width: 18px;
+  margin-right: 5px;
+  padding: 2px 6px;
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  font: 600 11px/1.4 "Barlow", "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: rgba(255, 255, 255, .06);
+}
+.hint { margin: 14px 0 0; font-size: 12px; color: #77716a; }
+body.mobile .keys, body.mobile .hint { display: none; }
+
+/* Fullscreen button, bottom right once the game is running */
+#fullscreen {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  color: var(--ink);
+  background: rgba(15, 15, 18, .55);
+  cursor: pointer;
+  opacity: .55;
+  transition: opacity .15s ease, background .15s ease;
+}
+#fullscreen:hover, #fullscreen:focus-visible { opacity: 1; background: var(--red); outline: none; }
+#fullscreen[hidden] { display: none; }
+body.mobile #fullscreen { display: none; }
+
+/* Warnings and errors */
+#unity-warning {
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 24px));
+  display: none;
+}
+.banner {
+  margin-bottom: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #1b1b1b;
+  background: #f3c552;
+}
+.banner.error { color: #fff; background: #b3261e; }
+
+#diagnostics-icon { position: absolute; left: 10px; bottom: 10px; width: 32px; height: 32px; display: none; cursor: pointer; }
